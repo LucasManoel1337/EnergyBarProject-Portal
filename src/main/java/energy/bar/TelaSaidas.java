@@ -208,30 +208,22 @@ class TelaSaidas extends JPanel {
                 txtDesconto.setBounds(510, y, 50, 30);
                 estilizarCampo(txtDesconto);
 
-                JTextField txtValorTotal = new JTextField(valorTotal);
-                txtValorTotal.setBounds(570, y, 60, 30);
+                JTextField txtValorTotal = new JTextField("R$ "+valorTotal);
+                txtValorTotal.setBounds(570, y, 80, 30);
                 estilizarCampo(txtValorTotal);
 
-                // Criação do botão de visualização
-                JButton btnVisualizar = new JButton("Visualizar");
-                btnVisualizar.setBounds(640, y, 110, 30);
+                JButton btnVisualizar = new JButton("Ver");
+                btnVisualizar.setBounds(660, y, 80, 30);
                 estilizarBotao(btnVisualizar);
-                btnVisualizar.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        TelaHistoricoCompra telaHistoricoCompra = mainApp.getTelaHistoricoCompra();
-
-                        // Define os dados nos campos
-                        telaHistoricoCompra.campoFuncionario.setText(funcionarioNome);
-                        telaHistoricoCompra.campoTipocliente.setText(tipoCliente);
-                        telaHistoricoCompra.campoFormaDePagamento.setText(formaPagamento);
-                        telaHistoricoCompra.campoDesconto.setText(desconto);
-                        telaHistoricoCompra.campoTotalDaCompra.setText(valorTotal);
-
-                        telaHistoricoCompra.carregarProdutosPorCompra(compraId);
-
-                        mainApp.exibirTela(telaHistoricoCompra);
-                    }
+                btnVisualizar.addActionListener(e -> {
+                    TelaHistoricoCompra telaHistoricoCompra = mainApp.getTelaHistoricoCompra();
+                    telaHistoricoCompra.campoFuncionario.setText(funcionarioNome);
+                    telaHistoricoCompra.campoTipocliente.setText(tipoCliente);
+                    telaHistoricoCompra.campoFormaDePagamento.setText(formaPagamento);
+                    telaHistoricoCompra.campoDesconto.setText(desconto);
+                    telaHistoricoCompra.campoTotalDaCompra.setText("R$ "+valorTotal);
+                    telaHistoricoCompra.carregarProdutosPorCompra(compraId);
+                    mainApp.exibirTela(telaHistoricoCompra);
                 });
 
                 // Adicionando os campos ao painel

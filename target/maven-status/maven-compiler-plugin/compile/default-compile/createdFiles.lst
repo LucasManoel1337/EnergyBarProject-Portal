@@ -8,7 +8,6 @@ energy\bar\TelaCatalogo$1.class
 energy\bar\TelaSaidas$1.class
 energy\bar\TelaEstoqueBar.class
 energy\bar\TelaProdutos.class
-energy\bar\TelaSaidas$2.class
 energy\bar\TelaVendas$3.class
 energy\bar\db\GeradorDeProdutos.class
 energy\bar\back\dto\ProdutoDTO.class
