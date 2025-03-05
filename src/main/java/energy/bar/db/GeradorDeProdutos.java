@@ -3,6 +3,7 @@ package energy.bar.db;
 import energy.bar.back.dao.FuncionariosDAO;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.time.LocalDate;
@@ -14,8 +15,8 @@ import java.util.Locale;
 import java.util.Random;
 
 public class GeradorDeProdutos {
-    
-    public GeradorDeProdutos(){
+
+    public GeradorDeProdutos() {
     }
 
     private static Random random = new Random();
@@ -148,10 +149,36 @@ public class GeradorDeProdutos {
             stmt.setString(8, lote);
             stmt.setString(9, dataCadastro);
             stmt.setInt(10, unidadeDoProgama);
-            
+
             // Executar a inserção
             stmt.executeUpdate();
 
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try {
+            // Conectar ao banco de dados
+            Connection connection = ConexaoBancoDeDados.getConnection();
+
+            // Verificar se o produto já existe no catálogo
+            String checkSql = "SELECT COUNT(*) FROM tb_catalogo WHERE produto = ?";
+            PreparedStatement checkStmt = connection.prepareStatement(checkSql);
+            checkStmt.setString(1, nomeDoProduto);
+            ResultSet rs = checkStmt.executeQuery();
+
+            if (rs.next() && rs.getInt(1) == 0) {
+                // O produto ainda não existe, pode inserir
+                String sql = "INSERT INTO tb_catalogo (produto) VALUES (?)";
+                PreparedStatement stmt = connection.prepareStatement(sql);
+                stmt.setString(1, nomeDoProduto);
+
+                // Executar a inserção
+                stmt.executeUpdate();
+                System.out.println("Produto inserido com sucesso!");
+
+                stmt.close();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
