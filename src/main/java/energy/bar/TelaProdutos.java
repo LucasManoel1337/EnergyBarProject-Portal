@@ -25,7 +25,6 @@ import javax.swing.table.TableRowSorter;
 
 import energy.bar.support.LabelEnergyBar;
 import energy.bar.support.TimerAvisosLabels;
-import energy.bar.support.resolution;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -35,7 +34,6 @@ public class TelaProdutos extends JPanel {
     TimerAvisosLabels tir = new TimerAvisosLabels();
     LabelEnergyBar labelEnergyBar = new LabelEnergyBar();
     FuncionariosDAO funcionario = new FuncionariosDAO();
-    resolution r = new resolution();
 
     private EnergyBarProject mainApp;
 

@@ -102,7 +102,7 @@ public class EnergyBarProject {
         janela.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         janela.setBounds(0, 0, 1000, 600);
         janela.setLocationRelativeTo(null);
-        janela.setResizable(true);
+        janela.setResizable(false);
 
         try {
             ImageIcon icon = new ImageIcon("Arquivos de suporte/imagens/logo.png");

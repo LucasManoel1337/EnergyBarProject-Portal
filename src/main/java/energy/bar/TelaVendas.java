@@ -560,7 +560,7 @@ class TelaVendas extends JPanel {
         }
 
         // 2. Inserir os dados dos produtos na tabela tb_produtos_compras
-        String sqlProdutoCompra = "INSERT INTO tb_produtos_compras (compra_id, produto_id, produto_nome, quantidade, preco_unitario, lote) VALUES (?, ?, ?, ?, ?, ?)";
+        String sqlProdutoCompra = "INSERT INTO tb_produtos_compras (compra_id, produto_id, produto_nome, quantidade, preco_unitario, desconto,  lote) VALUES (?, ?, ?, ?, ?, ?, ?)";
         stmtProdutoCompra = connection.prepareStatement(sqlProdutoCompra);
 
         for (int i = 0; i < modeloTabela.getRowCount(); i++) {
@@ -576,7 +576,8 @@ class TelaVendas extends JPanel {
             stmtProdutoCompra.setString(3, produtoNome);  // Nome do produto
             stmtProdutoCompra.setInt(4, quantidade);  // Quantidade
             stmtProdutoCompra.setBigDecimal(5, precoUnitario);  // Preço unitário
-            stmtProdutoCompra.setString(6, lote);  // Lote
+            stmtProdutoCompra.setBigDecimal(6, desconto);  // Preço unitário
+            stmtProdutoCompra.setString(7, lote);  // Lote
 
             stmtProdutoCompra.addBatch();
         }

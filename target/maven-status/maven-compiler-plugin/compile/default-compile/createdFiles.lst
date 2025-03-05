@@ -14,7 +14,6 @@ energy\bar\back\dto\ProdutoDTO.class
 energy\bar\support\EstoqueVerifier.class
 energy\bar\TelaProdutos$1.class
 energy\bar\back\dto\ProdutoCompraDTO.class
-energy\bar\support\resolution.class
 energy\bar\TelaVendas.class
 energy\bar\back\dto\FuncionarioDTO.class
 energy\bar\support\IdVerifier.class

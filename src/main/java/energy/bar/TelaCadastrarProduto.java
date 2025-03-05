@@ -25,7 +25,6 @@ import javax.swing.text.AbstractDocument;
 
 import energy.bar.support.LabelEnergyBar;
 import energy.bar.support.TimerAvisosLabels;
-import energy.bar.support.resolution;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -43,7 +42,6 @@ public class TelaCadastrarProduto extends JPanel {
     TimerAvisosLabels tir = new TimerAvisosLabels();
     LabelEnergyBar labelEnergyBar = new LabelEnergyBar();
     FuncionariosDAO funcionario = new FuncionariosDAO();
-    resolution r = new resolution();
 
     private EnergyBarProject mainApp; // Adicione o campo para a referência
     private JButton bBuscar = new JButton("Buscar ID");
@@ -282,58 +280,6 @@ public class TelaCadastrarProduto extends JPanel {
         lIdNaoExistente.setForeground(Color.RED);
         lIdNaoExistente.setVisible(false);
         add(lIdNaoExistente);
-
-        // Label falta de dados
-        lfaltaDeDados.setBounds(r.getProportionalX(220, 1000), r.getProportionalY(510, 600), r.getProportionalWidth(350, 1000), r.getProportionalHeight(40, 600));
-
-// Label Cadastro Feito
-        lCadastroFeito.setBounds(r.getProportionalX(250, 1000), r.getProportionalY(510, 600), r.getProportionalWidth(350, 1000), r.getProportionalHeight(40, 600));
-
-// Label Campo ID Vazio
-        lCampoIdVazio.setBounds(r.getProportionalX(180, 1000), r.getProportionalY(510, 600), r.getProportionalWidth(500, 1000), r.getProportionalHeight(40, 600));
-
-// Label e TextField ID
-        lId.setBounds(r.getProportionalX(50, 1000), r.getProportionalY(60, 600), r.getProportionalWidth(300, 1000), r.getProportionalHeight(40, 600));
-        campoId.setBounds(r.getProportionalX(50, 1000), r.getProportionalY(90, 600), r.getProportionalWidth(540, 1000), r.getProportionalHeight(30, 600));
-        bBuscar.setBounds(r.getProportionalX(600, 1000), r.getProportionalY(90, 600), r.getProportionalWidth(110, 1000), r.getProportionalHeight(30, 600));
-
-// Label e TextField Nome do produto
-        lNomeProduto.setBounds(r.getProportionalX(50, 1000), r.getProportionalY(115, 600), r.getProportionalWidth(300, 1000), r.getProportionalHeight(40, 600));
-        campoNomeProduto.setBounds(r.getProportionalX(50, 1000), r.getProportionalY(145, 600), r.getProportionalWidth(660, 1000), r.getProportionalHeight(30, 600));
-
-// Label e TextField Responsavel
-        lResponsavel.setBounds(r.getProportionalX(50, 1000), r.getProportionalY(170, 600), r.getProportionalWidth(300, 1000), r.getProportionalHeight(40, 600));
-        campoResponsavel.setBounds(r.getProportionalX(50, 1000), r.getProportionalY(200, 600), r.getProportionalWidth(660, 1000), r.getProportionalHeight(30, 600));
-
-// Label e TextField Estoque
-        lEstoque.setBounds(r.getProportionalX(50, 1000), r.getProportionalY(225, 600), r.getProportionalWidth(300, 1000), r.getProportionalHeight(40, 600));
-        campoEstoque.setBounds(r.getProportionalX(50, 1000), r.getProportionalY(255, 600), r.getProportionalWidth(660, 1000), r.getProportionalHeight(30, 600));
-
-// Label e TextField Validade
-        lValidade.setBounds(r.getProportionalX(50, 1000), r.getProportionalY(280, 600), r.getProportionalWidth(300, 1000), r.getProportionalHeight(40, 600));
-        campoValidade.setBounds(r.getProportionalX(50, 1000), r.getProportionalY(310, 600), r.getProportionalWidth(660, 1000), r.getProportionalHeight(30, 600));
-
-// Label e TextField Valor de custo
-        lValorDeCusto.setBounds(r.getProportionalX(50, 1000), r.getProportionalY(335, 600), r.getProportionalWidth(300, 1000), r.getProportionalHeight(40, 600));
-        campoValorDeCusto.setBounds(r.getProportionalX(50, 1000), r.getProportionalY(365, 600), r.getProportionalWidth(660, 1000), r.getProportionalHeight(30, 600));
-
-// Label e TextField Valor de venda
-        lValorDeVenda.setBounds(r.getProportionalX(50, 1000), r.getProportionalY(390, 600), r.getProportionalWidth(300, 1000), r.getProportionalHeight(40, 600));
-        campoValorDeVenda.setBounds(r.getProportionalX(50, 1000), r.getProportionalY(420, 600), r.getProportionalWidth(660, 1000), r.getProportionalHeight(30, 600));
-
-// Label e TextField Lote
-        lLote.setBounds(r.getProportionalX(50, 1000), r.getProportionalY(445, 600), r.getProportionalWidth(300, 1000), r.getProportionalHeight(40, 600));
-        campoLote.setBounds(r.getProportionalX(50, 1000), r.getProportionalY(475, 600), r.getProportionalWidth(530, 1000), r.getProportionalHeight(30, 600));
-        bAplicarLote.setBounds(r.getProportionalX(590, 1000), r.getProportionalY(475, 600), r.getProportionalWidth(120, 1000), r.getProportionalHeight(30, 600));
-
-// Botão Cancelar
-        bCancelar.setBounds(r.getProportionalX(50, 1000), r.getProportionalY(510, 600), r.getProportionalWidth(100, 1000), r.getProportionalHeight(40, 600));
-
-// Botão Cadastrar
-        bCadastrar.setBounds(r.getProportionalX(600, 1000), r.getProportionalY(510, 600), r.getProportionalWidth(110, 1000), r.getProportionalHeight(40, 600));
-
-// Label pesquisa
-        lIdNaoExistente.setBounds(r.getProportionalX(200, 1000), r.getProportionalY(510, 600), r.getProportionalWidth(400, 1000), r.getProportionalHeight(40, 600));
 
         bCadastrar.addActionListener(e -> {
             lCampoIdVazio.setVisible(false);
