@@ -13,6 +13,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -499,117 +500,123 @@ class TelaVendas extends JPanel {
         });
 
         bFinalizarCompra.addActionListener(e -> {
-    lfaltaDeDados.setVisible(false);
-    lProdutoNaoExiste.setVisible(false);
-    lCarrinhoVazio.setVisible(false);
-    lCompraFinalizada.setVisible(false);
-    lProdutoAdicionado.setVisible(false);
-    lIdOuQtnVazio.setVisible(false);
+            lfaltaDeDados.setVisible(false);
+            lProdutoNaoExiste.setVisible(false);
+            lCarrinhoVazio.setVisible(false);
+            lCompraFinalizada.setVisible(false);
+            lProdutoAdicionado.setVisible(false);
+            lIdOuQtnVazio.setVisible(false);
 
-    // Verifica se os campos ComboBox e a tabela estão preenchidos
-    if (campoTipocliente.getSelectedItem() == null || campoFormaDePagamento.getSelectedItem() == null || campoFuncionario.getSelectedItem() == null
-            || campoTipocliente.getSelectedItem().equals("") || campoFormaDePagamento.getSelectedItem().equals("") || campoFuncionario.getSelectedItem().equals("")) {
-        tir.exibirAvisoTemporario(lfaltaDeDados);
-        return;
-    }
+            // Verifica se os campos ComboBox e a tabela estão preenchidos
+            if (campoTipocliente.getSelectedItem() == null || campoFormaDePagamento.getSelectedItem() == null || campoFuncionario.getSelectedItem() == null
+                    || campoTipocliente.getSelectedItem().equals("") || campoFormaDePagamento.getSelectedItem().equals("") || campoFuncionario.getSelectedItem().equals("")) {
+                tir.exibirAvisoTemporario(lfaltaDeDados);
+                return;
+            }
 
-    if (modeloTabela.getRowCount() == 0) {
-        tir.exibirAvisoTemporario(lCarrinhoVazio);
-        return;
-    }
+            if (modeloTabela.getRowCount() == 0) {
+                tir.exibirAvisoTemporario(lCarrinhoVazio);
+                return;
+            }
 
-    Connection connection = null;
-    PreparedStatement stmtCompra = null;
-    PreparedStatement stmtProdutoCompra = null;
+            Connection connection = null;
+            PreparedStatement stmtCompra = null;
+            PreparedStatement stmtProdutoCompra = null;
 
-    try {
-        // Estabelece a conexão com o banco de dados
-        connection = ConexaoBancoDeDados.getConnection();
+            try {
+                // Estabelece a conexão com o banco de dados
+                connection = ConexaoBancoDeDados.getConnection();
 
-        // Inicia a transação
-        connection.setAutoCommit(false);
+                // Inicia a transação
+                connection.setAutoCommit(false);
 
-        // 1. Inserir dados na tabela tb_compras
-        String sqlCompra = "INSERT INTO tb_compras (data_compra, funcionario, tipo_cliente, forma_pagamento, desconto, valor_total, compra_unidade) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        stmtCompra = connection.prepareStatement(sqlCompra, Statement.RETURN_GENERATED_KEYS);
+                // 1. Inserir dados na tabela tb_compras
+                String sqlCompra = "INSERT INTO tb_compras (data_compra, funcionario, tipo_cliente, forma_pagamento, desconto, valor_total, compra_unidade) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                stmtCompra = connection.prepareStatement(sqlCompra, Statement.RETURN_GENERATED_KEYS);
 
-        // Verifique e trate os valores de desconto e total para garantir que não contenham vírgulas
-        String descontoStr = campoDesconto.getText().trim().replace(',', '.');  // Substituir vírgula por ponto
-        String totalCompraStr = campoTotalDaCompra.getText().replace("R$ ", "").trim().replace(',', '.');  // Substituir vírgula por ponto
+                // Verifique e trate os valores de desconto e total para garantir que não contenham vírgulas
+                String descontoStr = campoDesconto.getText().trim().replace(',', '.');  // Substituir vírgula por ponto
+                String totalCompraStr = campoTotalDaCompra.getText().replace("R$ ", "").trim().replace(',', '.');  // Substituir vírgula por ponto
 
-        BigDecimal desconto = new BigDecimal(descontoStr);  // Converte o desconto para BigDecimal
-        BigDecimal totalCompra = new BigDecimal(totalCompraStr);  // Converte o total da compra para BigDecimal
+                BigDecimal desconto = new BigDecimal(descontoStr);  // Desconto em porcentagem
+                BigDecimal totalCompra = new BigDecimal(totalCompraStr);  // Valor total da compra
 
-        // Define os parâmetros da compra
-        stmtCompra.setTimestamp(1, new Timestamp(System.currentTimeMillis()));  // Data da compra
-        stmtCompra.setString(2, campoFuncionario.getSelectedItem().toString());  // Funcionário
-        stmtCompra.setString(3, campoTipocliente.getSelectedItem().toString());  // Tipo de cliente
-        stmtCompra.setString(4, campoFormaDePagamento.getSelectedItem().toString());  // Forma de pagamento
-        stmtCompra.setBigDecimal(5, desconto);  // Desconto
-        stmtCompra.setBigDecimal(6, totalCompra);  // Valor total
-        stmtCompra.setInt(7, funcionario.getUnidadeDoProgama());  // Unidade que teve essa compra
+                // Define os parâmetros da compra
+                stmtCompra.setTimestamp(1, new Timestamp(System.currentTimeMillis()));  // Data da compra
+                stmtCompra.setString(2, campoFuncionario.getSelectedItem().toString());  // Funcionário
+                stmtCompra.setString(3, campoTipocliente.getSelectedItem().toString());  // Tipo de cliente
+                stmtCompra.setString(4, campoFormaDePagamento.getSelectedItem().toString());  // Forma de pagamento
+                stmtCompra.setBigDecimal(5, desconto);  // Desconto (porcentagem)
+                stmtCompra.setBigDecimal(6, totalCompra);  // Valor total
+                stmtCompra.setInt(7, funcionario.getUnidadeDoProgama());  // Unidade que teve essa compra
 
-        // Executa a inserção
-        stmtCompra.executeUpdate();
+                // Executa a inserção
+                stmtCompra.executeUpdate();
 
-        // Obtém o ID gerado para a compra
-        ResultSet generatedKeys = stmtCompra.getGeneratedKeys();
-        int compraId = -1;
-        if (generatedKeys.next()) {
-            compraId = generatedKeys.getInt(1);  // ID da compra inserido
-        }
+                // Obtém o ID gerado para a compra
+                ResultSet generatedKeys = stmtCompra.getGeneratedKeys();
+                int compraId = -1;
+                if (generatedKeys.next()) {
+                    compraId = generatedKeys.getInt(1);  // ID da compra inserido
+                }
 
-        // 2. Inserir os dados dos produtos na tabela tb_produtos_compras
-        String sqlProdutoCompra = "INSERT INTO tb_produtos_compras (compra_id, produto_id, produto_nome, quantidade, preco_unitario, desconto,  lote) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        stmtProdutoCompra = connection.prepareStatement(sqlProdutoCompra);
+                // 2. Inserir os dados dos produtos na tabela tb_produtos_compras
+                String sqlProdutoCompra = "INSERT INTO tb_produtos_compras (compra_id, produto_id, produto_nome, quantidade, preco_unitario, desconto, lote) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                stmtProdutoCompra = connection.prepareStatement(sqlProdutoCompra);
 
-        for (int i = 0; i < modeloTabela.getRowCount(); i++) {
-            String produtoId = modeloTabela.getValueAt(i, 0).toString();  // ID do produto
-            String produtoNome = modeloTabela.getValueAt(i, 1).toString();  // Nome do produto
-            int quantidade = Integer.parseInt(modeloTabela.getValueAt(i, 2).toString());  // Quantidade
-            BigDecimal precoUnitario = new BigDecimal(modeloTabela.getValueAt(i, 3).toString());  // Preço unitário
-            String lote = modeloTabela.getValueAt(i, 4).toString();  // Lote
+                for (int i = 0; i < modeloTabela.getRowCount(); i++) {
+                    String produtoId = modeloTabela.getValueAt(i, 0).toString();  // ID do produto
+                    String produtoNome = modeloTabela.getValueAt(i, 1).toString();  // Nome do produto
+                    int quantidade = Integer.parseInt(modeloTabela.getValueAt(i, 2).toString());  // Quantidade
+                    BigDecimal precoUnitario = new BigDecimal(modeloTabela.getValueAt(i, 3).toString());  // Preço unitário
+                    String lote = modeloTabela.getValueAt(i, 4).toString();  // Lote
 
-            // Insere os dados do produto
-            stmtProdutoCompra.setInt(1, compraId);  // Relaciona com o ID da compra
-            stmtProdutoCompra.setInt(2, Integer.parseInt(produtoId));  // ID do produto
-            stmtProdutoCompra.setString(3, produtoNome);  // Nome do produto
-            stmtProdutoCompra.setInt(4, quantidade);  // Quantidade
-            stmtProdutoCompra.setBigDecimal(5, precoUnitario);  // Preço unitário
-            stmtProdutoCompra.setBigDecimal(6, desconto);  // Preço unitário
-            stmtProdutoCompra.setString(7, lote);  // Lote
+                    // Calcula o preço unitário com desconto aplicado:
+                    // desconto é a porcentagem de desconto. Ex.: 20% -> (precoUnitario * 20/100)
+                    // Preço com desconto = precoUnitario - (precoUnitario * desconto/100)
+                    BigDecimal descontoValor = precoUnitario.multiply(desconto).divide(new BigDecimal("100"), RoundingMode.HALF_UP);
+                    BigDecimal precoComDesconto = precoUnitario.subtract(descontoValor);
 
-            stmtProdutoCompra.addBatch();
-        }
+                    // Insere os dados do produto
+                    stmtProdutoCompra.setInt(1, compraId);  // Relaciona com o ID da compra
+                    stmtProdutoCompra.setInt(2, Integer.parseInt(produtoId));  // ID do produto
+                    stmtProdutoCompra.setString(3, produtoNome);  // Nome do produto
+                    stmtProdutoCompra.setInt(4, quantidade);  // Quantidade
+                    stmtProdutoCompra.setBigDecimal(5, precoUnitario);  // Preço unitário
+                    stmtProdutoCompra.setBigDecimal(6, precoComDesconto);  // Valor do produto com desconto aplicado
+                    stmtProdutoCompra.setString(7, lote);  // Lote
 
-        // Executa a inserção dos produtos em lote
-        stmtProdutoCompra.executeBatch();
+                    stmtProdutoCompra.addBatch();
+                }
 
-        // Commit da transação
-        connection.commit();
+                // Executa a inserção dos produtos em lote
+                stmtProdutoCompra.executeBatch();
 
-        // 3. Atualiza a tela e limpa os campos
-        modeloTabela.setRowCount(0);
-        campoTipocliente.setSelectedItem("");
-        campoFuncionario.setSelectedItem("");
-        campoTotalDaCompra.setText("R$ 00.00");
-        campoFormaDePagamento.setSelectedItem("");
-        campoDesconto.setText("000");
-        campoId.setText("");
-        campoQtn.setText("");
+                // Commit da transação
+                connection.commit();
 
-        lDescontoAplicado.setVisible(false);
+                // 3. Atualiza a tela e limpa os campos
+                modeloTabela.setRowCount(0);
+                campoTipocliente.setSelectedItem("");
+                campoFuncionario.setSelectedItem("");
+                campoTotalDaCompra.setText("R$ 00.00");
+                campoFormaDePagamento.setSelectedItem("");
+                campoDesconto.setText("000");
+                campoId.setText("");
+                campoQtn.setText("");
 
-        // Exibe a mensagem de compra finalizada
-        tir.exibirAvisoTemporario(lCompraFinalizada);
+                lDescontoAplicado.setVisible(false);
 
-        GerenciadorDeProdutos.removerLotesComEstoqueZero();
+                // Exibe a mensagem de compra finalizada
+                tir.exibirAvisoTemporario(lCompraFinalizada);
 
-        System.out.println("[" + new SimpleDateFormat("HH-mm-ss - dd-MM-yyyy").format(new Date()) + "] - [TelaVendas.java] - Venda cadastrada no banco de dados com sucesso!");
-    } catch (SQLException ex) {
-        ex.printStackTrace();
-    }
-});
+                GerenciadorDeProdutos.removerLotesComEstoqueZero();
+
+                System.out.println("[" + new SimpleDateFormat("HH-mm-ss - dd-MM-yyyy").format(new Date()) + "] - [TelaVendas.java] - Venda cadastrada no banco de dados com sucesso!");
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        });
 
         bCancelarCompra.addActionListener(e -> {
             try {
@@ -620,96 +627,96 @@ class TelaVendas extends JPanel {
         });
     }
 
-private void removerProduto() {
-    // Valida se o campo de ID e quantidade está preenchido corretamente
-    String id = campoId.getText().trim();
-    String qtnStr = campoQtn.getText().trim();
+    private void removerProduto() {
+        // Valida se o campo de ID e quantidade está preenchido corretamente
+        String id = campoId.getText().trim();
+        String qtnStr = campoQtn.getText().trim();
 
-    if (id.isEmpty() || qtnStr.isEmpty() || id.equals("000") || qtnStr.equals("000")) {
-        JOptionPane.showMessageDialog(null, "ID ou Quantidade inválidos.", "Erro", JOptionPane.ERROR_MESSAGE);
-        return;
-    }
-
-    int quantidadeRemover;
-    try {
-        quantidadeRemover = Integer.parseInt(qtnStr);
-    } catch (NumberFormatException e) {
-        JOptionPane.showMessageDialog(null, "Quantidade deve ser um número válido.", "Erro", JOptionPane.ERROR_MESSAGE);
-        return;
-    }
-
-    // Procura o ID na tabela do carrinho
-    int linhaEncontrada = -1;
-    int quantidadeNaTabela = 0;
-
-    for (int i = 0; i < modeloTabela.getRowCount(); i++) {
-        String idTabela = modeloTabela.getValueAt(i, 0).toString();
-        if (idTabela.equals(id)) {
-            linhaEncontrada = i;
-            quantidadeNaTabela = Integer.parseInt(modeloTabela.getValueAt(i, 2).toString());
-            break;
+        if (id.isEmpty() || qtnStr.isEmpty() || id.equals("000") || qtnStr.equals("000")) {
+            JOptionPane.showMessageDialog(null, "ID ou Quantidade inválidos.", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
         }
-    }
 
-    if (linhaEncontrada == -1) {
-        JOptionPane.showMessageDialog(null, "Produto não encontrado no carrinho.", "Erro", JOptionPane.ERROR_MESSAGE);
-        return;
-    } else if (quantidadeRemover > quantidadeNaTabela) {
-        JOptionPane.showMessageDialog(null, "Quantidade a remover maior do que a quantidade no carrinho.", "Erro", JOptionPane.ERROR_MESSAGE);
-        return;
-    }
+        int quantidadeRemover;
+        try {
+            quantidadeRemover = Integer.parseInt(qtnStr);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(null, "Quantidade deve ser um número válido.", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
-    // Buscar o lote mais antigo para atualização de estoque
-    String sqlLote = "SELECT lote, produto_unidade FROM tb_produtos WHERE id_produto = ? AND produto_unidade = ? ORDER BY data_cadastro ASC, validade ASC LIMIT 1";
+        // Procura o ID na tabela do carrinho
+        int linhaEncontrada = -1;
+        int quantidadeNaTabela = 0;
 
-    try (Connection conn = ConexaoBancoDeDados.getConnection(); PreparedStatement stmtLote = conn.prepareStatement(sqlLote)) {
-        stmtLote.setInt(1, Integer.parseInt(id));
-        stmtLote.setInt(2, funcionario.getUnidadeDoProgama()); // Usando a unidade dinâmica
-
-        try (ResultSet rsLote = stmtLote.executeQuery()) {
-            if (rsLote.next()) {
-                String loteAntigo = rsLote.getString("lote");
-                int unidadeProduto = rsLote.getInt("produto_unidade");
-
-                // Verifica se o produto pertence à unidade correta
-                if (unidadeProduto != funcionario.getUnidadeDoProgama()) {
-                    JOptionPane.showMessageDialog(null, "Erro: Produto pertence a outra unidade.", "Erro", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                // Atualiza o estoque no banco de dados (adicionando de volta a quantidade removida)
-                String updateLoteSql = "UPDATE tb_produtos SET estoque = estoque + ? WHERE id_produto = ? AND lote = ? AND produto_unidade = ?";
-                try (PreparedStatement updateStmt = conn.prepareStatement(updateLoteSql)) {
-                    updateStmt.setInt(1, quantidadeRemover);
-                    updateStmt.setInt(2, Integer.parseInt(id));
-                    updateStmt.setString(3, loteAntigo);
-                    updateStmt.setInt(4, funcionario.getUnidadeDoProgama()); // Atualizando para a unidade dinâmica
-                    updateStmt.executeUpdate();
-                }
-
-                // Atualiza a tabela do carrinho
-                if (quantidadeRemover < quantidadeNaTabela) {
-                    modeloTabela.setValueAt(quantidadeNaTabela - quantidadeRemover, linhaEncontrada, 2);
-                } else {
-                    modeloTabela.removeRow(linhaEncontrada);
-                }
-
-                // Atualiza o valor total da compra
-                campoTotalDaCompra.setText("R$ " + calcularTotalCompra());
-
-            } else {
-                JOptionPane.showMessageDialog(null, "Nenhum lote encontrado para atualização.", "Erro", JOptionPane.ERROR_MESSAGE);
+        for (int i = 0; i < modeloTabela.getRowCount(); i++) {
+            String idTabela = modeloTabela.getValueAt(i, 0).toString();
+            if (idTabela.equals(id)) {
+                linhaEncontrada = i;
+                quantidadeNaTabela = Integer.parseInt(modeloTabela.getValueAt(i, 2).toString());
+                break;
             }
         }
-    } catch (Exception ex) {
-        ex.printStackTrace();
-        JOptionPane.showMessageDialog(null, "Erro ao buscar lote no banco de dados.", "Erro", JOptionPane.ERROR_MESSAGE);
-    }
 
-    // Limpa os campos de entrada após remoção
-    campoId.setText("");
-    campoQtn.setText("");
-}
+        if (linhaEncontrada == -1) {
+            JOptionPane.showMessageDialog(null, "Produto não encontrado no carrinho.", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        } else if (quantidadeRemover > quantidadeNaTabela) {
+            JOptionPane.showMessageDialog(null, "Quantidade a remover maior do que a quantidade no carrinho.", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Buscar o lote mais antigo para atualização de estoque
+        String sqlLote = "SELECT lote, produto_unidade FROM tb_produtos WHERE id_produto = ? AND produto_unidade = ? ORDER BY data_cadastro ASC, validade ASC LIMIT 1";
+
+        try (Connection conn = ConexaoBancoDeDados.getConnection(); PreparedStatement stmtLote = conn.prepareStatement(sqlLote)) {
+            stmtLote.setInt(1, Integer.parseInt(id));
+            stmtLote.setInt(2, funcionario.getUnidadeDoProgama()); // Usando a unidade dinâmica
+
+            try (ResultSet rsLote = stmtLote.executeQuery()) {
+                if (rsLote.next()) {
+                    String loteAntigo = rsLote.getString("lote");
+                    int unidadeProduto = rsLote.getInt("produto_unidade");
+
+                    // Verifica se o produto pertence à unidade correta
+                    if (unidadeProduto != funcionario.getUnidadeDoProgama()) {
+                        JOptionPane.showMessageDialog(null, "Erro: Produto pertence a outra unidade.", "Erro", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    // Atualiza o estoque no banco de dados (adicionando de volta a quantidade removida)
+                    String updateLoteSql = "UPDATE tb_produtos SET estoque = estoque + ? WHERE id_produto = ? AND lote = ? AND produto_unidade = ?";
+                    try (PreparedStatement updateStmt = conn.prepareStatement(updateLoteSql)) {
+                        updateStmt.setInt(1, quantidadeRemover);
+                        updateStmt.setInt(2, Integer.parseInt(id));
+                        updateStmt.setString(3, loteAntigo);
+                        updateStmt.setInt(4, funcionario.getUnidadeDoProgama()); // Atualizando para a unidade dinâmica
+                        updateStmt.executeUpdate();
+                    }
+
+                    // Atualiza a tabela do carrinho
+                    if (quantidadeRemover < quantidadeNaTabela) {
+                        modeloTabela.setValueAt(quantidadeNaTabela - quantidadeRemover, linhaEncontrada, 2);
+                    } else {
+                        modeloTabela.removeRow(linhaEncontrada);
+                    }
+
+                    // Atualiza o valor total da compra
+                    campoTotalDaCompra.setText("R$ " + calcularTotalCompra());
+
+                } else {
+                    JOptionPane.showMessageDialog(null, "Nenhum lote encontrado para atualização.", "Erro", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Erro ao buscar lote no banco de dados.", "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+
+        // Limpa os campos de entrada após remoção
+        campoId.setText("");
+        campoQtn.setText("");
+    }
 
 // Método para verificar se uma string é numérica
     private boolean isNumeric(String str) {
@@ -764,84 +771,84 @@ private void removerProduto() {
     }
 
     private void cancelarCompra() throws SQLException {
-    // Conectar ao banco de dados
-    try (Connection conn = ConexaoBancoDeDados.getConnection()) {
-        // Iniciar transação para garantir que a operação seja atômica
-        conn.setAutoCommit(false);
+        // Conectar ao banco de dados
+        try (Connection conn = ConexaoBancoDeDados.getConnection()) {
+            // Iniciar transação para garantir que a operação seja atômica
+            conn.setAutoCommit(false);
 
-        // Percorrer cada produto do carrinho (tabela)
-        for (int i = 0; i < modeloTabela.getRowCount(); i++) {
-            String idTabela = modeloTabela.getValueAt(i, 0).toString(); // ID do produto (coluna 0)
-            String quantidadeNaTabelaStr = modeloTabela.getValueAt(i, 2).toString(); // Quantidade do produto (coluna 2)
+            // Percorrer cada produto do carrinho (tabela)
+            for (int i = 0; i < modeloTabela.getRowCount(); i++) {
+                String idTabela = modeloTabela.getValueAt(i, 0).toString(); // ID do produto (coluna 0)
+                String quantidadeNaTabelaStr = modeloTabela.getValueAt(i, 2).toString(); // Quantidade do produto (coluna 2)
 
-            // Verificar se a quantidade é válida (numérica)
-            if (!isNumeric(quantidadeNaTabelaStr)) {
-                System.out.println("[" + dataHora + "] - [TelaVendas.java] - ERRO: Quantidade inválida para o ID " + idTabela);
-                continue; // Pular este item e continuar o processamento
-            }
+                // Verificar se a quantidade é válida (numérica)
+                if (!isNumeric(quantidadeNaTabelaStr)) {
+                    System.out.println("[" + dataHora + "] - [TelaVendas.java] - ERRO: Quantidade inválida para o ID " + idTabela);
+                    continue; // Pular este item e continuar o processamento
+                }
 
-            int quantidadeNaTabela = Integer.parseInt(quantidadeNaTabelaStr);
+                int quantidadeNaTabela = Integer.parseInt(quantidadeNaTabelaStr);
 
-            // Consultar o estoque e o lote mais recente para o produto no banco de dados
-            String queryEstoque = "SELECT estoque, lote, produto_unidade FROM tb_produtos WHERE id_produto = ? AND produto_unidade = ? ORDER BY data_cadastro ASC LIMIT 1";
-            try (PreparedStatement stmt = conn.prepareStatement(queryEstoque)) {
-                stmt.setString(1, idTabela);
-                stmt.setInt(2, funcionario.getUnidadeDoProgama());  // Usando a unidade correta
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        int estoqueAtualNoBanco = rs.getInt("estoque");
-                        String lote = rs.getString("lote");  // Lote do produto
-                        int unidadeProduto = rs.getInt("produto_unidade");
+                // Consultar o estoque e o lote mais recente para o produto no banco de dados
+                String queryEstoque = "SELECT estoque, lote, produto_unidade FROM tb_produtos WHERE id_produto = ? AND produto_unidade = ? ORDER BY data_cadastro ASC LIMIT 1";
+                try (PreparedStatement stmt = conn.prepareStatement(queryEstoque)) {
+                    stmt.setString(1, idTabela);
+                    stmt.setInt(2, funcionario.getUnidadeDoProgama());  // Usando a unidade correta
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (rs.next()) {
+                            int estoqueAtualNoBanco = rs.getInt("estoque");
+                            String lote = rs.getString("lote");  // Lote do produto
+                            int unidadeProduto = rs.getInt("produto_unidade");
 
-                        // Verifica se o produto pertence à unidade correta
-                        if (unidadeProduto != funcionario.getUnidadeDoProgama()) {
-                            System.out.println("[" + dataHora + "] - [TelaVendas.java] - ERRO: Produto pertence a outra unidade.");
-                            continue;
+                            // Verifica se o produto pertence à unidade correta
+                            if (unidadeProduto != funcionario.getUnidadeDoProgama()) {
+                                System.out.println("[" + dataHora + "] - [TelaVendas.java] - ERRO: Produto pertence a outra unidade.");
+                                continue;
+                            }
+
+                            // Atualizar o estoque no banco de dados para o lote correto
+                            int novaQuantidade = estoqueAtualNoBanco + quantidadeNaTabela;
+                            String updateEstoque = "UPDATE tb_produtos SET estoque = ? WHERE id_produto = ? AND lote = ? AND produto_unidade = ?";
+                            try (PreparedStatement updateStmt = conn.prepareStatement(updateEstoque)) {
+                                updateStmt.setInt(1, novaQuantidade);
+                                updateStmt.setString(2, idTabela);
+                                updateStmt.setString(3, lote);  // Atualizando o lote correto
+                                updateStmt.setInt(4, funcionario.getUnidadeDoProgama());  // Usando a unidade correta
+                                updateStmt.executeUpdate();
+                                System.out.println("Estoque atualizado com sucesso para o ID " + idTabela + ", lote " + lote);
+                            }
+                        } else {
+                            System.out.println("[" + dataHora + "] - [TelaVendas.java] - ERRO: Produto não encontrado no banco para ID " + idTabela);
                         }
-
-                        // Atualizar o estoque no banco de dados para o lote correto
-                        int novaQuantidade = estoqueAtualNoBanco + quantidadeNaTabela;
-                        String updateEstoque = "UPDATE tb_produtos SET estoque = ? WHERE id_produto = ? AND lote = ? AND produto_unidade = ?";
-                        try (PreparedStatement updateStmt = conn.prepareStatement(updateEstoque)) {
-                            updateStmt.setInt(1, novaQuantidade);
-                            updateStmt.setString(2, idTabela);
-                            updateStmt.setString(3, lote);  // Atualizando o lote correto
-                            updateStmt.setInt(4, funcionario.getUnidadeDoProgama());  // Usando a unidade correta
-                            updateStmt.executeUpdate();
-                            System.out.println("Estoque atualizado com sucesso para o ID " + idTabela + ", lote " + lote);
-                        }
-                    } else {
-                        System.out.println("[" + dataHora + "] - [TelaVendas.java] - ERRO: Produto não encontrado no banco para ID " + idTabela);
                     }
                 }
             }
-        }
 
-        // Commit na transação para garantir que todas as atualizações sejam aplicadas
-        conn.commit();
+            // Commit na transação para garantir que todas as atualizações sejam aplicadas
+            conn.commit();
 
-        // Limpar a tabela de vendas (carrinho)
-        modeloTabela.setRowCount(0);
-        System.out.println("[" + dataHora + "] - [TelaVendas.java] - Todos os produtos do carrinho foram removidos.");
+            // Limpar a tabela de vendas (carrinho)
+            modeloTabela.setRowCount(0);
+            System.out.println("[" + dataHora + "] - [TelaVendas.java] - Todos os produtos do carrinho foram removidos.");
 
-        // Zerar os campos de ID, quantidade, e outros campos de vendas
-        campoId.setText("");
-        campoQtn.setText("");
-        campoTipocliente.setSelectedItem("");  // Se for JComboBox, por exemplo
-        campoFuncionario.setSelectedItem("");  // Se for JComboBox
-        campoFormaDePagamento.setSelectedItem("");  // Se for JComboBox
-        campoDesconto.setText("000");
+            // Zerar os campos de ID, quantidade, e outros campos de vendas
+            campoId.setText("");
+            campoQtn.setText("");
+            campoTipocliente.setSelectedItem("");  // Se for JComboBox, por exemplo
+            campoFuncionario.setSelectedItem("");  // Se for JComboBox
+            campoFormaDePagamento.setSelectedItem("");  // Se for JComboBox
+            campoDesconto.setText("000");
 
-        // Atualizar o campo do total da compra
-        campoTotalDaCompra.setText("R$ 00.00");
-    } catch (SQLException e) {
-        // Em caso de erro, fazer rollback na transação
-        e.printStackTrace();
-        try (Connection conn = ConexaoBancoDeDados.getConnection()) {
-            conn.rollback();
-        } catch (SQLException rollbackEx) {
-            rollbackEx.printStackTrace();
+            // Atualizar o campo do total da compra
+            campoTotalDaCompra.setText("R$ 00.00");
+        } catch (SQLException e) {
+            // Em caso de erro, fazer rollback na transação
+            e.printStackTrace();
+            try (Connection conn = ConexaoBancoDeDados.getConnection()) {
+                conn.rollback();
+            } catch (SQLException rollbackEx) {
+                rollbackEx.printStackTrace();
+            }
         }
     }
-}
 }
