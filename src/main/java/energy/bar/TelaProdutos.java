@@ -194,13 +194,6 @@ public class TelaProdutos extends JPanel {
         lIdNaoExistente.setVisible(false);
         add(lIdNaoExistente);
 
-        JLabel lTabelaAtualizada = new JLabel("Tabela atualizada!");
-        lTabelaAtualizada.setFont(new Font("Arial", Font.BOLD, 16));
-        lTabelaAtualizada.setBounds(300, 510, 400, 40); // Define posição e tamanho
-        lTabelaAtualizada.setForeground(Color.GREEN);
-        lTabelaAtualizada.setVisible(false);
-        add(lTabelaAtualizada);
-
         // Label pesquisa
         JLabel lPesquisaVazio = new JLabel("Não foi possivel pesquisar o produto com o campo de pesquisa vazio!");
         lPesquisaVazio.setFont(new Font("Arial", Font.BOLD, 16));

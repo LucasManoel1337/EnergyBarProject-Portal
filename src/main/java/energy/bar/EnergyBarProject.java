@@ -23,7 +23,7 @@ import javax.swing.JOptionPane;
 
 public class EnergyBarProject {
     
-    private String versaoPrograma = "0.8.9";
+    private String versaoPrograma = "0.9.0";
     private static boolean gerarDados = false;
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss - dd-MM-yyyy");
